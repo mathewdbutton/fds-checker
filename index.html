@@ -7,10 +7,115 @@
 
     <link rel="stylesheet" href="https://fonts.xz.style/serve/inter.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@exampledev/new.css@1.1.2/new.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="decv_validation.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.20/lodash.min.js"></script>
+
+
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+<meta name="msapplication-TileColor" content="#da532c">
+<meta name="theme-color" content="#ffffff">
+
+
 </head>
+<style>
+  .passed {
+    color: green;
+  }
+  .failed {
+    color: red;
+  }
+</style>
 <body>
   <header>
     <h1>FDS Checker</h1>
   </header>
+
+  <div id="app">
+    <input type="file" id="docpicker" @change="filePicked" accept=".fds">
+        <details v-for="validation of validations">
+          <summary>{{validation.check}} - <span :class="[validation.passed ? 'passed' : 'failed']">{{validation.passed ? "Passed" : "Failed"}}</span></summary>
+          <pre>{{validation.results}}</pre>
+        </details>
+    </ul>
+<hr>
+    <details v-if="files.length > 0 ">
+      <summary >Fields Breakdown</summary>
+      <div v-for="file of files">
+        <field-group v-for="(field_values, field_name) in file.lines" :field_name="field_name" :field_values="field_values"></field-group>
+      </div>
+    </details>
+  </div>
+
+  <script type="text/x-template" id="field-group-template">
+    <details>
+      <summary>{{field_name}}</summary>
+      <pre v-for="items of field_values">{{items.contents}}</pre>
+    </details>
+  </script>
+
+
+<script>
+
+  Vue.component('field-group', {
+    template: '#field-group-template',
+    props: ['field_name', 'field_values']
+  })
+
+
+  var app = new Vue({
+    el: '#app',
+    data: {
+      files: [],
+      validations: []
+    },
+    methods: {
+      filePicked: function(event) {
+        const file = Array.from(event.target.files)[0];
+
+        var reader = new FileReader();
+
+          reader.onload = (e) => {
+            this.files.push ({
+              "file": file,
+              "fileContents": e.target.result,
+              "lines": this.extractFields(e.target.result)
+            });
+
+            this.validations = decvValidations.report(decvValidations.validate(this.extractFields(e.target.result)["DEVC"]))
+          };
+          reader.readAsText(file)
+      },
+      extractFields: function (fileContents) {
+        const lines = fileContents.match(/(\&.*?)['0-9]\//gms);
+        console.log(lines.length)
+
+        const parsedFields = lines.map((line) => {
+          return this.parseField(line.replace(/\r?\n|\r/g,"").replace(/,\s*/gms, ","));
+        })
+
+        return _.groupBy(parsedFields, 'fieldType')
+      },
+      parseField: function(line){
+        if(line.match(/\&.*/)) {
+          let [_, fieldType, contents] = line.match(/\&(.*?)\s(.*)/s)
+          return {
+            fieldType,
+            contents
+          }
+        }
+        return {
+          fieldType: "none",
+          contents: line
+        }
+      }
+    }
+  })
+</script>
 </body>
 </html>
