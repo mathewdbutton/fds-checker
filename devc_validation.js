@@ -1,4 +1,4 @@
-const decvValidations = {
+const devcValidations = {
   heatFluxCheck: (field_instance) => {
     return field_instance.contents.includes("QUANTITY='RADIATIVE HEAT FLUX GAS'")
   },
@@ -13,9 +13,9 @@ const decvValidations = {
     return field_instance.contents.includes("QUANTITY='TEMPERATURE'")
   },
   validate: (field_instances) => {
-    const heatFluxResult = field_instances.filter(decvValidations.heatFluxCheck);
-    const temperatureResult = field_instances.filter(decvValidations.temperatureCheck);
-    const heatFluxOrientationResult = heatFluxResult.filter(decvValidations.heatFluxOrientationCheck);
+    const heatFluxResult = field_instances.filter(devcValidations.heatFluxCheck);
+    const temperatureResult = field_instances.filter(devcValidations.temperatureCheck);
+    const heatFluxOrientationResult = heatFluxResult.filter(devcValidations.heatFluxOrientationCheck);
 
     return {
       heatFluxResult, heatFluxOrientationResult, temperatureResult
