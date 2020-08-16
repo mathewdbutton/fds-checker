@@ -10,7 +10,7 @@ const decvValidations = {
     return z === "1.0"
   },
   temperatureCheck: (field_instance) => {
-    return field_instance.contents.includes("QUANTITY='RADIATIVE HEAT FLUX GAS'")
+    return field_instance.contents.includes("QUANTITY='TEMPERATURE'")
   },
   validate: (field_instances) => {
     const heatFluxResult = field_instances.filter(decvValidations.heatFluxCheck);
